@@ -18,7 +18,7 @@
 import csv
 import gspread as gs
 
-# Populate the "transform" dict.  THIS IS CRITICAL!  But currently on-hold pending a different approach!  9-Dec-2022
+# Populate the "transform" dict.  THIS IS CRITICAL!  
 # This dict maps MODS.csv headings either to a CB CSV heading, or to a function.
 transform = {
   "PID": "objectid",
@@ -27,7 +27,7 @@ transform = {
   "PARENT": "parentid",
   "CMODEL": { "simple_map": "display_template" },
   "SEQUENCE": { "exception": None },
-  "OBJ": { "file_transfer": "object_location" },
+  "OBJ": { "filename": "object_location" },
   "TRANSCRIPT": { "filename": "transcript" },
   "THUMBNAIL": { "filename": "image_thumb" },
   "Title": "title",
@@ -41,7 +41,7 @@ transform = {
   "Other_Date~Display_Label": { "exception": None },
   "Publisher": { "exception": None },
   "Place_Of_Publication": { "exception": None },
-  "Public_Notes~Types": { "exceptions": None },
+  "Public_Notes~Types": { "exception": None },
   "Notes~Display_Label": { "exception": None },
   "Dates_as_Notes~Display_Label": { "exception": None },
   "Citations": { "exception": None },
@@ -73,29 +73,36 @@ transform = {
   "Private_Notes~Types": { "exception": None }
 }
 
-# def csvtolist(x):
-#   return x.split(",")
+required_by_CB = [
+  "objectid",
+  "title",
+  "display_template",
+  "object_location",
+  "image_small",
+  "image_thumb",
+  "format"
+]
 
-# def process_record(rec, path):
-#   try:
-#     post = frontmatter.load(path)
-#   except Exception as e:
-#     print(e)
+# exception: no transform defined at this time
+def exception( value, from_column, to_column ):
+  return True
 
-#   for key,value in rec.items():
-#     if key in list_fields:
-#       post[key] = csvtolist(value)
-#     elif key in editable_fields:
-#       post[key] = value
+# name_with_attribute: a single value with a single attribute
+def name_with_attribute( value, from_column, to_column ):
+  return True
 
-#   # now dump the frontmatter post back into the file
-#   try:
-#     md = open(path, "w")
-#     md.write(frontmatter.dumps(post))
-#     md.close
-#   except Exception as e:
-#     print(e)
-#   return
+# filename: a filepath or URL to be translated as-is to a new column
+def filename( value, from_column, to_column ):
+  return True  
+
+# simple_list: a simple list to translate into a single-value column
+def simple_list( value, from_column, to_column ):
+  return True
+
+# simple_map: a single value from controlled vocab to translate into a single-value column
+def simple_map( value, from_column, to_column ):
+  return True
+
 
 ######################################################################
 
@@ -156,9 +163,7 @@ if __name__ == '__main__':
     exit( )
 
   # Check that all of the old_headings are accounted for as keys in our "transform".  Report any that are not!
-  for old in old_headings:
-    if 
-
+  # LATER
 
   # All clear, open a new temporary .csv file and begin transforming records
   # per https://community.esri.com/t5/python-questions/how-to-convert-a-google-spreadsheet-to-a-csv-file/td-p/452722
@@ -170,7 +175,5 @@ if __name__ == '__main__':
       csvwriter.writerow(new_headings)
     except Exception as e:
       print(e)  
-
-    if transform_row()  
 
   exit( )
