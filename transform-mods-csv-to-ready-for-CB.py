@@ -23,7 +23,7 @@ transform = {
   "CMODEL": { "cmodel_map": "display_template" },
   "SEQUENCE": { "tbd": None },
   "OBJ": { "obj": "object_location" },
-  "TRANSCRIPT": { "filename": "transcript" },
+  "TRANSCRIPT": { "transcript": "transcript" },
   "THUMBNAIL": { "thumbnail": "image_thumb" },
   "Title": "title",
   "Alternative_Titles": { "tbd": None },
@@ -82,6 +82,7 @@ required_by_CB = [
 thumbnail_image = ""
 objectID = ""
 
+## Declare the CModels map to populate the `display_template` field
 # display_template:
 #
 #     A template type used for the Item page and used in logic to choose representations in other pages.
@@ -102,7 +103,7 @@ CModels = {
   "islandora:sp_pdf": "pdf",
   "islandora:compoundCModel": "record",
   "islandora:sp-audioCModel": "audio",
-  "islandora:oralhistoriesCModel": "audio",
+  "islandora:oralhistoriesCModel": "oral-history",
   "islandora:sp_large_image_cmodel": "image",
   "islandora:sp_web_archive": "item",
   "islandora:sp_videoCModel": "video",
@@ -139,10 +140,20 @@ def pid( value, from_column, to ):
     return False
   else:
     s = sanitized(value, from_column, to)
-    objectID = s
+    objectID = s    # buffer the objectID for later use
     return s
 
-# sanitized: a string to be translated as-is to a new column AFTER sanitization
+# sanitized: a string to be translated as-is to a new column AFTER file path sanitization
+def sanitized( value, from_column, to ):
+  func = inspect.currentframe().f_code.co_name
+  if to is None:
+    print("Transform function '{}' for column '{}' maps to None, skip it!".format(func, from_column))
+    return False
+  else:
+    sanitized = re.sub(r'[^\w\d-]', '_', value)
+    return sanitized
+
+# transcript: a string to be translated as-is to a new column AFTER file path sanitization
 def sanitized( value, from_column, to ):
   func = inspect.currentframe().f_code.co_name
   if to is None:
@@ -160,8 +171,7 @@ def obj( value, from_column, to ):
     print("Transform function '{}' for column '{}' maps to None, skip it!".format(func, from_column))
     return False
   else:
-    pid = value
-    thumbnail_image = value + "/datastream/TN/view"
+    thumbnail_image = value + "/datastream/TN/view"  
     return value + "/datastream/OBJ/view"
 
 # thumbnail: a TN datastream to populate the 'image_thumb' AND 'image_small' fields
@@ -173,7 +183,7 @@ def thumbnail( value, from_column, to ):
     print("Transform function '{}' for column '{}' maps to None, skip it!".format(func, from_column))
     return False
   elif value in thumbnail_image:
-    transformed['image_small'] = thumbnail_image
+    transformed['image_small'] = thumbnail_image   # save the thumbnail as the `small_image`
     return thumbnail_image
   else:
     return False  
